@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Plus, CheckCircle2 } from 'lucide-react';
 import TransactionHistory from '../components/transactions/TransactionHistory.jsx';
 import TransactionForm from '../components/transactions/TransactionForm.jsx';
+import ExportMenu from '../components/transactions/ExportMenu.jsx';
 import {
   fetchTransactions,
   clearTransactionStatus
@@ -11,7 +12,7 @@ import {
 // Transactions management page adhering to Clarivo DESIGN.md
 export default function TransactionsPage() {
   const dispatch = useDispatch();
-  const { successMessage } = useSelector((state) => state.transactions);
+  const { successMessage, filters } = useSelector((state) => state.transactions);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
 
   // Initial load of transactions on page mount
@@ -40,15 +41,18 @@ export default function TransactionsPage() {
           </p>
         </div>
 
-        {/* Primary Action Button (One per view per Section 9.2) */}
-        <button
-          type="button"
-          onClick={() => setIsFormModalOpen(true)}
-          className="btn-primary text-xs gap-1.5 cursor-pointer self-start sm:self-auto"
-        >
-          <Plus className="h-4 w-4" />
-          <span>Add transaction</span>
-        </button>
+        {/* Action Controls: Secondary Export Menu + Primary Add Transaction */}
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          <ExportMenu filters={filters} />
+          <button
+            type="button"
+            onClick={() => setIsFormModalOpen(true)}
+            className="btn-primary text-xs gap-1.5 cursor-pointer"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Add transaction</span>
+          </button>
+        </div>
       </div>
 
       {/* Success Notification Banner */}

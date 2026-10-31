@@ -13,7 +13,8 @@ import {
   LogOut,
   Menu,
   X,
-  User
+  User,
+  Sparkles
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -34,6 +35,7 @@ export default function Navbar() {
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Transactions', path: '/transactions', icon: Receipt },
     { name: 'Budgets', path: '/budgets', icon: PiggyBank },
+    { name: 'Copilot', path: '/copilot', icon: Sparkles },
   ];
 
   return (

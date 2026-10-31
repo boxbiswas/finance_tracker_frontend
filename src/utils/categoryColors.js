@@ -125,13 +125,20 @@ export const CATEGORY_METADATA = {
   }
 };
 
-// Retrieve category metadata with safe fallback
-export const getCategoryDetails = (categoryKey) => {
-  return CATEGORY_METADATA[categoryKey] || {
+// Retrieve category metadata with safe fallback and theme-reactive color
+export const getCategoryDetails = (categoryKey, isDark) => {
+  const isDarkMode = isDark !== undefined
+    ? isDark
+    : (typeof document !== 'undefined' && document.documentElement.classList.contains('dark'));
+  const meta = CATEGORY_METADATA[categoryKey] || {
     label: categoryKey?.replace(/_/g, ' ') || 'Uncategorized',
     type: 'expense',
     light: '#64748B',
     dark: '#94A3B8'
+  };
+  return {
+    ...meta,
+    color: isDarkMode ? meta.dark : meta.light
   };
 };
 

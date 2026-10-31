@@ -5,12 +5,14 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import AppBackground from './layouts/AppBackground.jsx';
 import ProtectedRoute from './components/ProtectedRoutes.jsx';
+import PublicRoute from './components/PublicRoute.jsx';
 
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import TransactionsPage from './pages/TransactionsPage.jsx';
 import BudgetsPage from './pages/BudgetsPage.jsx';
+import CopilotPage from './pages/CopilotPage.jsx';
 
 export default function App() {
   return (
@@ -19,9 +21,11 @@ export default function App() {
       <AppBackground />
 
       <Routes>
-        {/* Public Authentication Routes */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        {/* Public Authentication Routes for Guests */}
+        <Route element={<PublicRoute />}>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+        </Route>
 
         {/* Protected Application Routes */}
         <Route element={<ProtectedRoute />}>
@@ -29,6 +33,7 @@ export default function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/transactions" element={<TransactionsPage />} />
           <Route path="/budgets" element={<BudgetsPage />} />
+          <Route path="/copilot" element={<CopilotPage />} />
         </Route>
 
         {/* Catch-all Redirect */}

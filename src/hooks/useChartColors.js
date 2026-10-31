@@ -32,7 +32,8 @@ export function useChartColors() {
       // Chart grid lines and surfaces
       grid: isDark ? 'rgba(255, 255, 255, 0.10)' : 'rgba(15, 23, 42, 0.08)',
       glassBorder: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.90)',
-      glassBg: isDark ? 'rgba(255, 255, 255, 0.10)' : 'rgba(255, 255, 255, 0.85)'
+      glassBg: isDark ? 'rgba(255, 255, 255, 0.10)' : 'rgba(255, 255, 255, 0.85)',
+      canvas: isDark ? '#06130F' : '#ECFDF5'
     };
   }, [theme]);
 }

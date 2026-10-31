@@ -82,7 +82,7 @@ export default function DashboardBudgetProgress({
                       <div className="flex items-center gap-2 min-w-0">
                         <span
                           className="h-2 w-2 rounded-full shrink-0"
-                          style={{ backgroundColor: cat.light }}
+                          style={{ backgroundColor: cat.color || cat.light }}
                         />
                         <span className="font-medium text-ink truncate">{cat.label}</span>
                       </div>

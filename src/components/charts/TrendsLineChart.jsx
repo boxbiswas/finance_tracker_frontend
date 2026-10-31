@@ -110,7 +110,7 @@ export default function TrendsLineChart({
                 strokeWidth={2.5}
                 fillOpacity={1}
                 fill="url(#netCashFlowGradient)"
-                dot={{ fill: colors.netCashFlow, r: 3.5, strokeWidth: 1.5, stroke: '#FFFFFF' }}
+                dot={{ fill: colors.netCashFlow, r: 3.5, strokeWidth: 1.5, stroke: colors.canvas }}
                 activeDot={{ r: 5, strokeWidth: 2, fill: colors.netCashFlow }}
               />
             </AreaChart>

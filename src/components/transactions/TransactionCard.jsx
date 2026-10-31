@@ -22,7 +22,7 @@ export default function TransactionCard({
           {/* Category color dot */}
           <span
             className="h-2.5 w-2.5 rounded-full shrink-0"
-            style={{ backgroundColor: categoryInfo.light }}
+            style={{ backgroundColor: categoryInfo.color || categoryInfo.light }}
             aria-hidden="true"
           />
           <span className="text-sm font-medium text-ink truncate">

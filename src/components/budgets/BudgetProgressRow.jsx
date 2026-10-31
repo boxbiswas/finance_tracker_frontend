@@ -42,7 +42,7 @@ export default function BudgetProgressRow({
         <div className="flex items-center gap-2.5 min-w-0">
           <span
             className="h-3 w-3 rounded-full shrink-0"
-            style={{ backgroundColor: cat.light }}
+            style={{ backgroundColor: cat.color || cat.light }}
             aria-hidden="true"
           />
           <h3 className="text-sm font-medium text-ink truncate">

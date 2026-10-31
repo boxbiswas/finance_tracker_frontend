@@ -45,7 +45,7 @@ export default function TransactionTable({
                   <div className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs bg-track">
                     <span
                       className="h-2 w-2 rounded-full shrink-0"
-                      style={{ backgroundColor: categoryInfo.light }}
+                      style={{ backgroundColor: categoryInfo.color || categoryInfo.light }}
                       aria-hidden="true"
                     />
                     <span className="text-ink-soft font-medium">
