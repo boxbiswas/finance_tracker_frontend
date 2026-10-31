@@ -67,6 +67,12 @@ const authSlice = createSlice({
     clearAuthError: (state) => {
       state.error = null;
     },
+    clearAuth: (state) => {
+      state.user = null;
+      state.isAuthenticated = false;
+      state.error = null;
+      localStorage.removeItem('clarivo_user');
+    },
     setAuthenticatedUser: (state, action) => {
       state.user = action.payload;
       state.isAuthenticated = true;
@@ -117,5 +123,5 @@ const authSlice = createSlice({
   }
 });
 
-export const { clearAuthError, setAuthenticatedUser } = authSlice.actions;
+export const { clearAuthError, clearAuth, setAuthenticatedUser } = authSlice.actions;
 export default authSlice.reducer;

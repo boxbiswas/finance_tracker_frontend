@@ -13,10 +13,12 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response && error.response.status === 401) {
-            // Only redirect if we are not already on the login page
-            // to avoid redirect loops during initial auth checks
-            if (window.location.pathname !== '/login') {
-                sessionStorage.removeItem('user');
+            // Remove user from localStorage so auth state resets and avoids redirect loops
+            localStorage.removeItem('clarivo_user');
+            sessionStorage.removeItem('user');
+
+            // Only redirect if we are not already on the login or register page
+            if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
                 window.location.href = '/login';
             }
         }
