@@ -33,9 +33,9 @@ export default function DeleteConfirmation({
       role="dialog"
       aria-modal="true"
       aria-labelledby="delete-dialog-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 dark:bg-black/80 backdrop-blur-md transition-all animate-in fade-in duration-200"
     >
-      <div className="glass-strong w-full max-w-[440px] rounded-2xl p-6 border border-glass-border shadow-glass space-y-5">
+      <div className="bg-solid w-full max-w-[440px] rounded-2xl p-6 border border-glass-border shadow-2xl space-y-5 animate-in zoom-in-95 duration-200 text-ink">
         {/* Warning Icon and Header */}
         <div className="flex items-start gap-3.5">
           <div className="h-10 w-10 shrink-0 rounded-xl bg-expense/10 text-expense flex items-center justify-center">

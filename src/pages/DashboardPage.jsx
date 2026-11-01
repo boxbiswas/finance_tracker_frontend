@@ -85,7 +85,7 @@ export default function DashboardPage() {
         onRefresh={() => loadDashboardData(filters)}
         onOpenTransactionModal={() => setIsTxnModalOpen(true)}
         onOpenBudgetModal={() => setIsBudgetModalOpen(true)}
-        filters={filters}
+        filters={{ from: filters.from, to: filters.to }}
       />
 
       {/* Date Filter Bar for Analytics Period Selection */}

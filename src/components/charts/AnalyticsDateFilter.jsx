@@ -7,18 +7,26 @@ export default function AnalyticsDateFilter({
   onFilterChange,
   onReset
 }) {
+  // Helper to format date in local timezone YYYY-MM-DD avoiding UTC day-shift
+  const formatDateLocal = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
   const applyPreset = (preset) => {
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth();
 
     if (preset === 'this_month') {
-      const from = new Date(year, month, 1).toISOString().split('T')[0];
-      const to = new Date(year, month + 1, 0).toISOString().split('T')[0];
+      const from = formatDateLocal(new Date(year, month, 1));
+      const to = formatDateLocal(new Date(year, month + 1, 0));
       onFilterChange({ from, to, months: 1 });
     } else if (preset === 'last_3_months') {
-      const from = new Date(year, month - 2, 1).toISOString().split('T')[0];
-      const to = new Date(year, month + 1, 0).toISOString().split('T')[0];
+      const from = formatDateLocal(new Date(year, month - 2, 1));
+      const to = formatDateLocal(new Date(year, month + 1, 0));
       onFilterChange({ from, to, months: 3 });
     } else if (preset === 'last_6_months') {
       onFilterChange({ from: '', to: '', months: 6 });

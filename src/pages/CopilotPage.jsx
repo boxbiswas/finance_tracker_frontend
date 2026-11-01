@@ -1,27 +1,32 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Bot, Sparkles, ShieldCheck, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
+import { Bot, Sparkles, ShieldCheck } from 'lucide-react';
 import {
   addUserMessage,
   queryFinancialContext,
   clearCopilotChat
 } from '../redux/slices/copilotSlice.js';
+import { fetchAnalyticsSummary } from '../redux/slices/analyticsSlice.js';
 import CopilotHeader from '../components/copilot/CopilotHeader.jsx';
-import CopilotSuggestions from '../components/copilot/CopilotSuggestions.jsx';
-import CopilotMessage from '../components/copilot/CopilotMessage.jsx';
+import CopilotMessageList from '../components/copilot/CopilotMessageList.jsx';
 import CopilotInput from '../components/copilot/CopilotInput.jsx';
 import { formatCurrency } from '../utils/formatCurrency.js';
 
 // Dedicated Copilot and Verified Financial Context page per Clarivo DESIGN.md (Section 9.10)
 export default function CopilotPage() {
   const dispatch = useDispatch();
-  const { messages, loading, lastContext } = useSelector((state) => state.copilot);
+  const { messages, loading, error, lastContext } = useSelector((state) => state.copilot);
   const { summary } = useSelector((state) => state.analytics);
   const { user } = useSelector((state) => state.auth);
   const [inputValue, setInputValue] = useState('');
   const chatBottomRef = useRef(null);
 
   const currency = user?.currencyCode || 'INR';
+
+  // Load authoritative financial summary on page mount so context numbers are always live
+  useEffect(() => {
+    dispatch(fetchAnalyticsSummary());
+  }, [dispatch]);
 
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -52,50 +57,26 @@ export default function CopilotPage() {
         </div>
       </div>
 
-      {/* Main Grid: Chat Stream (7 cols) + Financial Context Inspector (5 cols) */}
+      {/* Main Grid: Chat Stream (8 cols) + Financial Context Inspector (4 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Chat Conversation Stream */}
-        <div className="lg:col-span-7 glass-strong rounded-2xl border border-glass-border flex flex-col h-[650px] justify-between overflow-hidden shadow-glass">
+        <div className="lg:col-span-8 glass-strong rounded-2xl border border-glass-border flex flex-col h-[650px] overflow-hidden shadow-glass">
           <CopilotHeader
             hasMessages={messages.length > 0}
             onClear={() => dispatch(clearCopilotChat())}
             showCloseButton={false}
           />
 
-          <div className="flex-1 overflow-y-auto p-5 space-y-4">
-            {messages.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center py-6">
-                <div className="h-12 w-12 rounded-2xl bg-accent/10 text-accent flex items-center justify-center mb-3">
-                  <Bot className="h-6 w-6" />
-                </div>
-                <h2 className="text-[15px] font-medium text-ink mb-1">
-                  Ask Clarivo about your spending
-                </h2>
-                <p className="text-xs text-ink-muted max-w-sm mb-5">
-                  Select a prompt below or type any question to retrieve verified, user-scoped data.
-                </p>
-
-                <div className="w-full max-w-md">
-                  <CopilotSuggestions onSelectPrompt={handleSend} />
-                </div>
-              </div>
-            ) : (
-              messages.map((msg) => (
-                <CopilotMessage key={msg.id} message={msg} />
-              ))
-            )}
-
-            {loading && (
-              <div className="flex justify-start">
-                <div className="bg-field border border-glass-border rounded-[16px_16px_16px_4px] px-4 py-3 flex items-center gap-1.5 text-ink-muted">
-                  <span className="h-1.5 w-1.5 rounded-full bg-ink-muted animate-pulse" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-ink-muted animate-pulse delay-150" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-ink-muted animate-pulse delay-300" />
-                </div>
-              </div>
-            )}
-            <div ref={chatBottomRef} />
-          </div>
+          <CopilotMessageList
+            messages={messages}
+            loading={loading}
+            error={error}
+            onSelectPrompt={handleSend}
+            onRetry={() => {
+              const lastUserMsg = [...messages].reverse().find((m) => m.sender === 'user');
+              if (lastUserMsg) handleSend(lastUserMsg.text);
+            }}
+          />
 
           <CopilotInput
             value={inputValue}
@@ -106,7 +87,7 @@ export default function CopilotPage() {
         </div>
 
         {/* Right Column: Verified Financial Context Inspector */}
-        <div className="lg:col-span-5 space-y-5">
+        <div className="lg:col-span-4 space-y-5">
           {/* Context Overview Card */}
           <div className="glass p-5 rounded-2xl border border-glass-border space-y-4">
             <div className="flex items-center justify-between border-b border-glass-border pb-3">
@@ -142,40 +123,10 @@ export default function CopilotPage() {
                 {formatCurrency(summary?.netCashFlow || 0, currency)}
               </span>
             </div>
-          </div>
 
-          {/* Controlled Server Capabilities List */}
-          <div className="glass-strong p-5 rounded-2xl border border-glass-border space-y-3">
-            <h3 className="text-sm font-medium text-ink">Controlled Context Capabilities</h3>
-            <p className="text-xs text-ink-muted">
-              The service exposes 6 strict server functions preventing arbitrary database queries:
+            <p className="text-[11px] text-ink-muted">
+              Live totals queried directly from MongoDB. The AI Copilot uses this verified context to ensure accurate, non-hallucinated answers.
             </p>
-            <ul className="text-xs text-ink-soft space-y-2">
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-accent shrink-0" />
-                <span><strong className="text-ink">getFinancialSummary()</strong> — Income, expense & cash flow</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-accent shrink-0" />
-                <span><strong className="text-ink">getCategoryBreakdown()</strong> — Top spending categories</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-accent shrink-0" />
-                <span><strong className="text-ink">getMonthlyTrends()</strong> — Trajectory & month-over-month</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-accent shrink-0" />
-                <span><strong className="text-ink">getBudgetStatus()</strong> — Limit checks & overspending alerts</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-accent shrink-0" />
-                <span><strong className="text-ink">searchTransactions()</strong> — Capped largest expense lookup</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-accent shrink-0" />
-                <span><strong className="text-ink">getChartData()</strong> — Verified chart statistics</span>
-              </li>
-            </ul>
           </div>
         </div>
       </div>

@@ -16,8 +16,10 @@ export default function CopilotInput({
     }
   };
 
+  const canSend = Boolean(value.trim()) && !loading;
+
   return (
-    <div className="p-4 border-t border-glass-border bg-glass-strong">
+    <div className="shrink-0 p-3.5 border-t border-glass-border bg-card/60 backdrop-blur-md">
       <div className="flex items-center gap-2">
         <input
           type="text"
@@ -26,14 +28,18 @@ export default function CopilotInput({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={loading}
-          className="input text-xs"
+          className="input text-xs h-10 px-3.5 rounded-xl bg-field border border-glass-border focus:border-brand"
         />
         <button
           type="button"
           onClick={onSend}
-          disabled={!value.trim() || loading}
+          disabled={!canSend}
           aria-label="Send message"
-          className="btn-primary h-11 w-11 p-0 shrink-0 rounded-xl cursor-pointer disabled:opacity-40"
+          className={`h-10 w-10 p-0 shrink-0 rounded-xl flex items-center justify-center transition cursor-pointer ${
+            canSend
+              ? 'bg-brand text-on-brand shadow-sm hover:brightness-110 active:scale-95'
+              : 'bg-field text-ink-muted border border-glass-border opacity-50 cursor-not-allowed'
+          }`}
         >
           {loading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -44,8 +50,8 @@ export default function CopilotInput({
       </div>
 
       {/* Privacy Notice per Section 9.10 */}
-      <p className="mt-2 text-[11px] text-ink-muted text-center">
-        Your question and the minimum required financial context may be sent to the configured AI provider.
+      <p className="mt-2 text-[10px] text-ink-muted text-center leading-tight">
+        Private verified analysis. Minimum financial context shared with AI provider.
       </p>
     </div>
   );

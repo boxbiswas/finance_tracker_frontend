@@ -1,113 +1,142 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Sparkles, Bot } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import {
   addUserMessage,
   queryFinancialContext,
   clearCopilotChat
 } from '../../redux/slices/copilotSlice.js';
 import CopilotHeader from './CopilotHeader.jsx';
-import CopilotSuggestions from './CopilotSuggestions.jsx';
-import CopilotMessage from './CopilotMessage.jsx';
+import CopilotMessageList from './CopilotMessageList.jsx';
 import CopilotInput from './CopilotInput.jsx';
 
-// Clarivo AI Copilot floating drawer panel per DESIGN.md (Section 9.10)
+// Collapsible Copilot panel drawer allowing questions while viewing the dashboard per Day 15 specification
 export default function CopilotPanel() {
   const dispatch = useDispatch();
-  const { messages, loading } = useSelector((state) => state.copilot);
+  const { messages, loading, error } = useSelector((state) => state.copilot);
+  const analyticsFilters = useSelector((state) => state.analytics?.filters);
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
-  const messagesEndRef = useRef(null);
+  const [selectedChart, setSelectedChart] = useState('monthly_comparison');
+  const panelRef = useRef(null);
 
-  // Auto-scroll to bottom of chat thread on new messages
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
+  // Isolate wheel scrolling to Copilot widget so background page never scrolls
   useEffect(() => {
-    if (isOpen) {
-      scrollToBottom();
-    }
-  }, [messages, isOpen, loading]);
+    const panel = panelRef.current;
+    if (!isOpen || !panel) return;
 
-  // Execute financial context query through Redux async thunk
+    const handleWheel = (e) => {
+      const scrollable = panel.querySelector('[data-copilot-messages]');
+      if (!scrollable) {
+        e.preventDefault();
+        return;
+      }
+
+      const isInsideScrollable = scrollable.contains(e.target);
+      const isAtTop = scrollable.scrollTop <= 0;
+      const isAtBottom = scrollable.scrollTop + scrollable.clientHeight >= scrollable.scrollHeight - 1;
+
+      if (isInsideScrollable) {
+        // Prevent scroll chaining to the background dashboard when hitting boundaries
+        if ((e.deltaY < 0 && isAtTop) || (e.deltaY > 0 && isAtBottom)) {
+          e.preventDefault();
+        }
+      } else {
+        // When cursor is over header or input row, redirect scroll into message list
+        if (e.deltaY < 0 && !isAtTop) {
+          scrollable.scrollTop += e.deltaY;
+          e.preventDefault();
+        } else if (e.deltaY > 0 && !isAtBottom) {
+          scrollable.scrollTop += e.deltaY;
+          e.preventDefault();
+        } else {
+          e.preventDefault();
+        }
+      }
+    };
+
+    panel.addEventListener('wheel', handleWheel, { passive: false });
+    return () => panel.removeEventListener('wheel', handleWheel);
+  }, [isOpen]);
+
+  // Submit query incorporating active dashboard scope and conversation history
   const handleSend = (textToSend) => {
     const query = (textToSend || inputValue).trim();
     if (!query || loading) return;
 
+    // 1. Add user question to Redux message thread
     dispatch(addUserMessage(query));
     setInputValue('');
-    dispatch(queryFinancialContext({ question: query }));
+
+    // 2. Dispatch query with active dashboard context
+    dispatch(
+      queryFinancialContext({
+        question: query,
+        dashboardContext: {
+          dateRange: {
+            from: analyticsFilters?.from || '',
+            to: analyticsFilters?.to || '',
+            months: analyticsFilters?.months || 6
+          },
+          selectedChart,
+          activeFilters: analyticsFilters || {}
+        }
+      })
+    );
+  };
+
+  // Retry the last user question if a network or backend error occurred
+  const handleRetry = () => {
+    const lastUserMsg = [...messages].reverse().find((m) => m.sender === 'user');
+    if (lastUserMsg) {
+      handleSend(lastUserMsg.text);
+    }
   };
 
   return (
     <>
-      {/* Floating Bottom-Right Trigger Button per Section 9.10 */}
-      <div className="fixed bottom-6 right-6 z-40">
-        <button
-          type="button"
-          onClick={() => setIsOpen((prev) => !prev)}
-          aria-label={isOpen ? 'Close Clarivo Copilot' : 'Open Clarivo Copilot'}
-          aria-expanded={isOpen}
-          className="btn-primary shadow-glass h-12 px-4 rounded-full flex items-center gap-2 cursor-pointer transition transform active:scale-95"
-        >
-          <Sparkles className="h-4 w-4" />
-          <span className="text-sm font-medium">Copilot</span>
-        </button>
-      </div>
+      {/* Floating Bottom-Right Trigger Button (Visible when closed) */}
+      {!isOpen && (
+        <div className="fixed bottom-6 right-6 z-40">
+          <button
+            type="button"
+            onClick={() => setIsOpen(true)}
+            aria-label="Open Clarivo Copilot"
+            aria-expanded={false}
+            className="btn-primary shadow-2xl h-12 px-5 rounded-full flex items-center gap-2.5 cursor-pointer transition transform hover:scale-105 active:scale-95"
+          >
+            <Sparkles className="h-4 w-4" />
+            <span className="text-sm font-medium">Copilot</span>
+          </button>
+        </div>
+      )}
 
-      {/* Right-Hand Drawer Container per Section 9.10 (420px desktop, full screen mobile) */}
+      {/* Floating Assistant Card Widget (MongoDB Atlas inspired, floating card layout) */}
       {isOpen && (
         <div
+          ref={panelRef}
           role="dialog"
           aria-modal="true"
           aria-label="Clarivo Copilot"
-          className="fixed inset-y-0 right-0 z-50 w-full sm:w-[420px] glass-strong border-l border-glass-border shadow-2xl flex flex-col justify-between transition-all duration-200 animate-in slide-in-from-right"
+          className="fixed bottom-6 right-6 z-50 w-[calc(100vw-32px)] sm:w-[410px] md:w-[430px] h-[620px] max-h-[85vh] glass-strong border border-glass-border rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain transition-all duration-200 animate-in fade-in zoom-in-95"
         >
-          {/* Modular Drawer Header */}
+          {/* Drawer Header */}
           <CopilotHeader
             hasMessages={messages.length > 0}
             onClear={() => dispatch(clearCopilotChat())}
             onClose={() => setIsOpen(false)}
           />
 
-          {/* Chat Stream & Empty State */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-4">
-            {messages.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center py-6">
-                <div className="h-12 w-12 rounded-2xl bg-accent/10 text-accent flex items-center justify-center mb-3">
-                  <Bot className="h-6 w-6" />
-                </div>
-                <h3 className="text-[15px] font-medium text-ink mb-1">
-                  Ask Clarivo about your spending
-                </h3>
-                <p className="text-xs text-ink-muted max-w-xs mb-5">
-                  Get instant insights, category breakdowns, and verified financial answers.
-                </p>
+          {/* Conversation Message List, Loading, Error, and Suggested Questions */}
+          <CopilotMessageList
+            messages={messages}
+            loading={loading}
+            error={error}
+            onSelectPrompt={handleSend}
+            onRetry={handleRetry}
+          />
 
-                {/* Modular Suggestions Chips */}
-                <CopilotSuggestions onSelectPrompt={handleSend} />
-              </div>
-            ) : (
-              messages.map((msg) => (
-                <CopilotMessage key={msg.id} message={msg} />
-              ))
-            )}
-
-            {/* Three-dot Typing Indicator */}
-            {loading && (
-              <div className="flex justify-start">
-                <div className="bg-field border border-glass-border rounded-[16px_16px_16px_4px] px-4 py-3 flex items-center gap-1.5 text-ink-muted">
-                  <span className="h-1.5 w-1.5 rounded-full bg-ink-muted animate-pulse" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-ink-muted animate-pulse delay-150" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-ink-muted animate-pulse delay-300" />
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Modular Input Bar */}
+          {/* Input Bar with Privacy Notice */}
           <CopilotInput
             value={inputValue}
             onChange={setInputValue}

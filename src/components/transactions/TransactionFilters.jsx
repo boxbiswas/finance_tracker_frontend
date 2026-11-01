@@ -12,6 +12,14 @@ export default function TransactionFilters({
   onFilterChange,
   onResetFilters
 }) {
+  // Helper to format date in local timezone YYYY-MM-DD avoiding UTC day-shift
+  const formatDateLocal = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
   // Preset date ranges calculations
   const applyPresetDate = (preset) => {
     const now = new Date();
@@ -19,16 +27,16 @@ export default function TransactionFilters({
     const month = now.getMonth();
 
     if (preset === 'this_month') {
-      const from = new Date(year, month, 1).toISOString().split('T')[0];
-      const to = new Date(year, month + 1, 0).toISOString().split('T')[0];
+      const from = formatDateLocal(new Date(year, month, 1));
+      const to = formatDateLocal(new Date(year, month + 1, 0));
       onFilterChange({ from, to });
     } else if (preset === 'last_month') {
-      const from = new Date(year, month - 1, 1).toISOString().split('T')[0];
-      const to = new Date(year, month, 0).toISOString().split('T')[0];
+      const from = formatDateLocal(new Date(year, month - 1, 1));
+      const to = formatDateLocal(new Date(year, month, 0));
       onFilterChange({ from, to });
     } else if (preset === 'last_3_months') {
-      const from = new Date(year, month - 2, 1).toISOString().split('T')[0];
-      const to = new Date(year, month + 1, 0).toISOString().split('T')[0];
+      const from = formatDateLocal(new Date(year, month - 2, 1));
+      const to = formatDateLocal(new Date(year, month + 1, 0));
       onFilterChange({ from, to });
     } else if (preset === 'all') {
       onFilterChange({ from: '', to: '' });

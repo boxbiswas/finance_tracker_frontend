@@ -4,14 +4,39 @@ import api from '../../https/axios.js';
 // Query authoritative financial context or submit a natural financial question
 export const queryFinancialContext = createAsyncThunk(
   'copilot/queryFinancialContext',
-  async ({ question, action, chartType, filters }, { rejectWithValue }) => {
+  async ({ question, action, chartType, filters, dashboardContext }, { getState, rejectWithValue }) => {
     try {
+      const state = getState();
+
+      // Retrieve recent conversation messages for follow-up conversational awareness
+      const conversationHistory = (state.copilot?.messages || []).map((m) => ({
+        role: m.sender === 'user' ? 'user' : 'copilot',
+        sender: m.sender,
+        content: m.text,
+        text: m.text
+      }));
+
+      // Gather active dashboard scope from Redux analytics filters if not explicitly provided
+      const effectiveFilters = filters || state.analytics?.filters || {};
+      const effectiveDashboardContext = dashboardContext || {
+        dateRange: {
+          from: effectiveFilters.from || '',
+          to: effectiveFilters.to || '',
+          months: effectiveFilters.months || 6
+        },
+        selectedChart: chartType || 'monthly_comparison',
+        activeFilters: effectiveFilters
+      };
+
       const response = await api.post('/copilot/query', {
         question,
         action,
-        chartType,
-        filters
+        chartType: chartType || effectiveDashboardContext.selectedChart,
+        filters: effectiveFilters,
+        dashboardContext: effectiveDashboardContext,
+        messages: conversationHistory.slice(-6)
       });
+
       return {
         question,
         data: response.data.data
@@ -24,26 +49,13 @@ export const queryFinancialContext = createAsyncThunk(
   }
 );
 
-// Fetch pure financial summary context
-export const fetchCopilotSummary = createAsyncThunk(
-  'copilot/fetchCopilotSummary',
-  async (params = {}, { rejectWithValue }) => {
-    try {
-      const response = await api.get('/copilot/context/summary', { params });
-      return response.data.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || 'Failed to fetch summary');
-    }
-  }
-);
-
+// Copilot Redux slice managing conversation thread and loading state per Day 15 specification
 const copilotSlice = createSlice({
   name: 'copilot',
   initialState: {
     messages: [],
     loading: false,
-    error: null,
-    lastContext: null
+    error: null
   },
   reducers: {
     addUserMessage: (state, action) => {
@@ -53,11 +65,14 @@ const copilotSlice = createSlice({
         text: action.payload,
         timestamp: new Date().toISOString()
       });
+      state.error = null;
     },
     clearCopilotChat: (state) => {
       state.messages = [];
       state.error = null;
-      state.lastContext = null;
+    },
+    setCopilotError: (state, action) => {
+      state.error = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -68,8 +83,8 @@ const copilotSlice = createSlice({
       })
       .addCase(queryFinancialContext.fulfilled, (state, action) => {
         state.loading = false;
-        state.lastContext = action.payload.data;
-        // Append copilot reply with structured verified context
+        state.error = null;
+        // Append copilot reply preserving message history for follow-up questions
         state.messages.push({
           id: Date.now() + 1,
           sender: 'copilot',
@@ -81,7 +96,7 @@ const copilotSlice = createSlice({
       })
       .addCase(queryFinancialContext.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || 'Failed to communicate with Copilot service';
         state.messages.push({
           id: Date.now() + 1,
           sender: 'copilot',
@@ -93,6 +108,5 @@ const copilotSlice = createSlice({
   }
 });
 
-export const { addUserMessage, clearCopilotChat } = copilotSlice.actions;
+export const { addUserMessage, clearCopilotChat, setCopilotError } = copilotSlice.actions;
 export default copilotSlice.reducer;
-

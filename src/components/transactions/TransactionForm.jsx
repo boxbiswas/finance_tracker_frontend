@@ -102,9 +102,9 @@ export default function TransactionForm({ isOpen, onClose, onSuccess }) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="transaction-form-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 dark:bg-black/80 backdrop-blur-md transition-all animate-in fade-in duration-200"
     >
-      <div className="glass-strong w-full max-w-[480px] rounded-2xl p-6 border border-glass-border shadow-glass space-y-5">
+      <div className="bg-solid w-full max-w-[480px] rounded-2xl p-6 border border-glass-border shadow-2xl space-y-5 animate-in zoom-in-95 duration-200 text-ink">
         {/* Header with Title and Close Button */}
         <div className="flex items-center justify-between border-b border-glass-border pb-3">
           <div>
@@ -120,7 +120,7 @@ export default function TransactionForm({ isOpen, onClose, onSuccess }) {
             onClick={onClose}
             disabled={submitting}
             aria-label="Close dialog"
-            className="h-8 w-8 rounded-lg flex items-center justify-center text-ink-muted hover:text-ink hover:bg-glass transition"
+            className="h-8 w-8 rounded-full flex items-center justify-center text-ink-soft hover:text-ink bg-field hover:bg-glass border border-glass-border transition cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>

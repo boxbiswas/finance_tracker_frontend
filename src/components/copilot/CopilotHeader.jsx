@@ -9,38 +9,38 @@ export default function CopilotHeader({
   showCloseButton = true
 }) {
   return (
-    <div className="flex items-center justify-between px-5 py-4 border-b border-glass-border">
+    <div className="shrink-0 flex items-center justify-between px-5 py-3.5 border-b border-glass-border bg-card/60 backdrop-blur-md">
       <div className="flex items-center gap-2.5">
-        <div className="h-8 w-8 rounded-xl bg-accent/15 text-accent flex items-center justify-center">
+        <div className="h-8 w-8 rounded-xl bg-accent/20 text-accent flex items-center justify-center shadow-xs">
           <Sparkles className="h-4 w-4" />
         </div>
         <div>
-          <h2 className="text-base font-medium text-ink leading-tight">Clarivo Copilot</h2>
+          <h2 className="text-sm font-semibold text-ink leading-tight">Clarivo Copilot</h2>
           <p className="text-[11px] text-ink-muted leading-tight">Verified financial context</p>
         </div>
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1.5">
         {hasMessages && (
           <button
             type="button"
             onClick={onClear}
-            className="btn-ghost h-8 w-8 p-0 text-ink-soft hover:text-expense cursor-pointer"
+            className="h-8 w-8 rounded-full bg-field hover:bg-glass border border-glass-border flex items-center justify-center text-ink-soft hover:text-expense transition cursor-pointer"
             title="Clear conversation"
             aria-label="Clear conversation"
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-3.5 w-3.5" />
           </button>
         )}
         {showCloseButton && onClose && (
           <button
             type="button"
             onClick={onClose}
-            className="btn-ghost h-8 w-8 p-0 text-ink-soft hover:text-ink cursor-pointer"
+            className="h-8 w-8 rounded-full bg-field hover:bg-glass-strong border border-glass-border flex items-center justify-center text-ink hover:text-accent hover:scale-105 transition cursor-pointer shrink-0"
             title="Close Copilot"
             aria-label="Close Copilot"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4 stroke-[2.5]" />
           </button>
         )}
       </div>
