@@ -19,20 +19,45 @@ export default function RegisterForm() {
 
   const [validationErrors, setValidationErrors] = useState({});
 
+  const universalNameRegex = /^[a-zA-Z\u00C0-\u017F]+(?:\s[a-zA-Z\u00C0-\u017F]+)*$/;
+  const numericDomainRegex = /@[0-9]+\.[a-zA-Z]{2,}$/;
+  const pureNumericUserRegex = /^[0-9]+@/;
+  const sequentialSpamRegex = /abcde|bcdef|cdefg|12345|23456|34567/i;
+
   const validate = () => {
     const errors = {};
-    if (!formData.name.trim()) {
+    const trimmedName = formData.name.trim();
+    const trimmedEmail = formData.email.trim().toLowerCase();
+
+    // Full name validation
+    if (!trimmedName) {
       errors.name = 'Full name is required';
-    } else if (formData.name.trim().length < 2) {
-      errors.name = 'Name must be at least 2 characters';
+    } else if (trimmedName.length < 2) {
+      errors.name = 'Full name must be at least 2 characters';
+    } else if (trimmedName.length > 70) {
+      errors.name = 'Full name is too long';
+    } else if (!universalNameRegex.test(trimmedName)) {
+      errors.name = 'Name must contain only letters and a single space between names. No numbers or symbols allowed.';
+    } else if (/(.)\1{3,}/.test(trimmedName.replace(/\s/g, ''))) {
+      errors.name = 'Name contains too many repeating characters.';
     }
 
-    if (!formData.email.trim()) {
+    // Email address anti-spam validation
+    if (!trimmedEmail) {
       errors.email = 'Email address is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+    } else if (trimmedEmail.length < 5) {
+      errors.email = 'Email is too short';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
       errors.email = 'Please enter a valid email address';
+    } else if (numericDomainRegex.test(trimmedEmail)) {
+      errors.email = 'Purely numeric domains (like 123.com) are not authorised.';
+    } else if (pureNumericUserRegex.test(trimmedEmail)) {
+      errors.email = 'Usernames consisting entirely of numbers are not authorised.';
+    } else if (sequentialSpamRegex.test(trimmedEmail.split('@')[0])) {
+      errors.email = 'Sequential or automated email patterns are not allowed.';
     }
 
+    // Password validation
     if (!formData.password) {
       errors.password = 'Password is required';
     } else if (formData.password.length < 6) {
