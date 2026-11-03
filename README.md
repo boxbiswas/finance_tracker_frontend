@@ -501,9 +501,6 @@ A pre-seeded demo account is available for testing all features:
 ### Copilot — Full Page with Authoritative Context
 ![Clarivo Copilot full page showing suggested questions and MongoDB Authoritative Context panel](./public/screenshots/copilot-page.jpg)
 
-### Copilot — Floating Widget
-![Clarivo Copilot floating popup widget on dashboard showing AI answer about spending](./public/screenshots/copilot-widget.jpg)
-
 ### Dashboard with Copilot Widget Open
 ![Dashboard with Copilot widget showing budget progress and recent transactions](./public/screenshots/dashboard-copilot.jpg)
 
